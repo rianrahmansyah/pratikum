@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Weather App Premium</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Icon -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:'Poppins',sans-serif;
+    }
+
+    body{
+      height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      background: linear-gradient(135deg,#0f172a,#1e3a8a,#38bdf8);
+      overflow:hidden;
+      position:relative;
+    }
+
+    /* Background Bubble */
+    body::before,
+    body::after{
+      content:'';
+      position:absolute;
+      border-radius:50%;
+      filter:blur(80px);
+      opacity:0.5;
+    }
+
+    body::before{
+      width:300px;
+      height:300px;
+      background:#38bdf8;
+      top:-100px;
+      left:-100px;
+    }
+
+    body::after{
+      width:350px;
+      height:350px;
+      background:#9333ea;
+      bottom:-120px;
+      right:-120px;
+    }
+
+    .card{
+      width:380px;
+      padding:30px;
+      border-radius:30px;
+      backdrop-filter:blur(20px);
+      background:rgba(255,255,255,0.1);
+      border:1px solid rgba(255,255,255,0.2);
+      box-shadow:0 10px 40px rgba(0,0,0,0.3);
+      color:white;
+      text-align:center;
+      position:relative;
+      z-index:2;
+      animation:fadeIn 1s ease;
+    }
+
+    @keyframes fadeIn{
+      from{
+        opacity:0;
+        transform:translateY(20px);
+      }
+      to{
+        opacity:1;
+        transform:translateY(0);
+      }
+    }
+
+    .card h1{
+      font-size:32px;
+      margin-bottom:25px;
+      font-weight:700;
+    }
+
+    .search-box{
+      display:flex;
+      gap:10px;
+      margin-bottom:25px;
+    }
+
+    .search-box input{
+      flex:1;
+      padding:14px;
+      border:none;
+      outline:none;
+      border-radius:15px;
+      background:rgba(255,255,255,0.15);
+      color:white;
+      font-size:15px;
+      transition:0.3s;
+    }
+
+    .search-box input::placeholder{
+      color:#ddd;
+    }
+
+    .search-box input:focus{
+      background:rgba(255,255,255,0.25);
+    }
+
+    .search-box button{
+      width:55px;
+      border:none;
+      border-radius:15px;
+      background:#ffffff;
+      color:#1e3a8a;
+      cursor:pointer;
+      font-size:18px;
+      transition:0.3s;
+    }
+
+    .search-box button:hover{
+      transform:scale(1.08);
+      background:#38bdf8;
+      color:white;
+    }
+
+    .weather-icon{
+      width:130px;
+      margin:10px auto;
+      animation:float 3s ease-in-out infinite;
+    }
+
+    @keyframes float{
+      0%{
+        transform:translateY(0px);
+      }
+      50%{
+        transform:translateY(-10px);
+      }
+      100%{
+        transform:translateY(0px);
+      }
+    }
+
+    .temp{
+      font-size:60px;
+      font-weight:700;
+      margin-top:10px;
+    }
+
+    .city{
+      font-size:28px;
+      margin-top:5px;
+      font-weight:500;
+    }
+
+    .desc{
+      font-size:18px;
+      text-transform:capitalize;
+      color:#e2e8f0;
+      margin-top:5px;
+    }
+
+    .details{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:15px;
+      margin-top:30px;
+    }
+
+    .detail-box{
+      background:rgba(255,255,255,0.12);
+      padding:18px;
+      border-radius:18px;
+      backdrop-filter:blur(10px);
+      transition:0.3s;
+    }
+
+    .detail-box:hover{
+      transform:translateY(-5px);
+      background:rgba(255,255,255,0.2);
+    }
+
+    .detail-box i{
+      font-size:24px;
+      margin-bottom:10px;
+      color:#38bdf8;
+    }
+
+    .detail-box h4{
+      font-size:14px;
+      color:#ddd;
+      margin-bottom:5px;
+    }
+
+    .detail-box p{
+      font-size:18px;
+      font-weight:600;
+    }
+
+    .error{
+      margin-top:20px;
+      color:#ffb4b4;
+      font-weight:500;
+    }
+
+    .footer{
+      margin-top:25px;
+      font-size:12px;
+      color:#ddd;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="card">
+
+    <h1>☁ Weather App</h1>
+
+    <div class="search-box">
+      <input type="text" id="kota" placeholder="Masukkan nama kota...">
+      <button onclick="ambilCuaca()">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </button>
+    </div>
+
+    <div id="hasil"></div>
+
+    <div class="footer">
+      Dibuat dengan ❤️ oleh Rian
+    </div>
+
+  </div>
+
+  <script>
+
+    const apiKey = "05c6b25c72efa26a1c83656e55104af3";
+
+    async function ambilCuaca(){
+
+      const kota = document.getElementById("kota").value;
+
+      if(kota === ""){
+        alert("Masukkan nama kota dulu!");
+        return;
+      }
+
+      const url = `https://api.openweathermap.org/data/2.5/weather?q=${kota}&units=metric&appid=${apiKey}&lang=id`;
+
+      try{
+
+        const response = await fetch(url);
+
+        if(!response.ok){
+          throw new Error("Kota tidak ditemukan!");
+        }
+
+        const data = await response.json();
+
+        const suhu = Math.round(data.main.temp);
+        const nama = data.name;
+        const cuaca = data.weather[0].description;
+        const kelembaban = data.main.humidity;
+        const angin = data.wind.speed;
+        const pressure = data.main.pressure;
+        const feelsLike = Math.round(data.main.feels_like);
+
+        const icon = data.weather[0].icon;
+
+        document.getElementById("hasil").innerHTML = `
+
+          <img 
+            src="https://openweathermap.org/img/wn/${icon}@4x.png" 
+            class="weather-icon"
+          >
+
+          <div class="temp">${suhu}°C</div>
+
+          <div class="city">${nama}</div>
+
+          <div class="desc">${cuaca}</div>
+
+          <div class="details">
+
+            <div class="detail-box">
+              <i class="fa-solid fa-droplet"></i>
+              <h4>Kelembaban</h4>
+              <p>${kelembaban}%</p>
+            </div>
+
+            <div class="detail-box">
+              <i class="fa-solid fa-wind"></i>
+              <h4>Angin</h4>
+              <p>${angin} m/s</p>
+            </div>
+
+            <div class="detail-box">
+              <i class="fa-solid fa-temperature-half"></i>
+              <h4>Terasa</h4>
+              <p>${feelsLike}°C</p>
+            </div>
+
+            <div class="detail-box">
+              <i class="fa-solid fa-gauge-high"></i>
+              <h4>Tekanan</h4>
+              <p>${pressure} hPa</p>
+            </div>
+
+          </div>
+
+        `;
+
+      }catch(error){
+
+        document.getElementById("hasil").innerHTML = `
+          <p class="error">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            ${error.message}
+          </p>
+        `;
+
+      }
+
+    }
+
+  </script>
+
+</body>
+</html>
